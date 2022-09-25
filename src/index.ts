@@ -7,7 +7,7 @@ export class Character extends Container {
     public gravity: number;
 
     private speed: number;
-    
+
     constructor(maxSpeed: number, jumpHeight: number, gravity: number) {
         super();
 
@@ -29,7 +29,7 @@ export class Character extends Container {
 
     public update(): void {
         this.speed = clamp(this.speed + this.gravity, this.maxSpeed, -9999);
-        this.y = clamp(this.y + this.speed, 20, app.renderer.height - 20);
+        this.y = clamp(this.y + this.speed, 20, app.view.clientHeight - 20);
     }
 
     public jump(): void {
@@ -65,7 +65,7 @@ export class Pipe extends Container {
         const pipe1Bounds = this.pipe1.getBounds();
         const pipe2Bounds = this.pipe2.getBounds();
         const objBounds = obj.getBounds();
-        
+
         drawDebugRect(debug[0] as Graphics, pipe1Bounds);
         drawDebugRect(debug[1] as Graphics, pipe2Bounds);
         drawDebugRect(debug[2] as Graphics, objBounds);
@@ -89,6 +89,34 @@ export class TouchLayer extends Container {
     public setCallBack(f: (...args: any[]) => void) {
         this.touchmask.on("pointerdown", f, this);
     }
+}
+
+export class GameRule {
+    private _state: number;
+    private readonly lives: number;
+
+    public get state(): number {
+        return this._state;
+    }
+
+
+    constructor(lives: number) {
+        this._state = -1;
+        this.lives = lives;
+    }
+
+    public startGame(): void {
+        this._state = this.lives;
+    }
+
+    public gainLive(): void {
+        this._state++;
+    }
+
+    public gameOver(): boolean {
+        return this._state <= 0;
+    }
+
 }
 
 const app = new Application({
@@ -118,10 +146,10 @@ touchLayer.setCallBack((e: InteractionEvent) => {
 app.stage.addChild(touchLayer);
 
 Ticker.shared.add(() => {
-    // character.position.y = clamp(character.position.y + 1, 20, app.renderer.height - 20);
     var result = pipe.checkCollision(character);
     console.log("Collision: " + result);
-}, character);
+    console.log("deltaTime: " + Ticker.shared.deltaTime);
+}), character);
 
 Ticker.shared.add(character.update, character);
 
@@ -133,6 +161,12 @@ for (let i = 0; i < 3; i++) {
     app.stage.addChild(graphic);
 }
 
+
+// const checkCollision1 =  () => {
+//     var result = pipe.checkCollision(character);
+//     console.log("Collision: " + result);
+//     console.log("deltaTime: " + Ticker.shared.deltaTime);
+// };
 // TODO: Logic: tolerate collision, heart, counter, etc
 // TODO: UI: pause, point counter,
 
