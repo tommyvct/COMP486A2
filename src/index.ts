@@ -1,14 +1,16 @@
-import { AnimatedSprite, Application, Container, Graphics, InteractionEvent, Sprite, Texture, Ticker } from "pixi.js";
-import { characterAnimationSprites, pipeSprite, clamp, checkCollisionOneOnOne, drawDebugRect } from "./assets";
+import { AnimatedSprite, Application, Container, InteractionEvent, Sprite, Texture, Ticker } from "pixi.js";
+import { characterAnimationSprites, pipeSprite, clamp, checkCollisionOneOnOne, shrinkRect, heartSprite, generateRandomNumber } from "./assets";
 
-export class Character extends Container {
+export class Character extends Container
+{
     public maxSpeed: number;
     public jumpHeight: number;
     public gravity: number;
 
     private speed: number;
 
-    constructor(maxSpeed: number, jumpHeight: number, gravity: number) {
+    constructor(maxSpeed: number, jumpHeight: number, gravity: number)
+    {
         super();
 
         const animatedChar: AnimatedSprite = new AnimatedSprite(characterAnimationSprites.map((a) => Texture.from(a)));
@@ -27,21 +29,30 @@ export class Character extends Container {
 
     }
 
-    public update(): void {
-        this.speed = clamp(this.speed + this.gravity, this.maxSpeed, -9999);
-        this.y = clamp(this.y + this.speed, 20, app.view.clientHeight - 20);
+    public update(): void
+    {
+        if (Ticker.shared.speed != 0)
+        {
+            this.speed = clamp((this.speed + this.gravity) * Ticker.shared.speed, this.maxSpeed, -9999);
+            this.y = clamp((this.y + this.speed) * Ticker.shared.speed, 20, app.view.clientHeight - 20);
+        }
     }
 
-    public jump(): void {
+    public jump(): void
+    {
         this.speed = -this.jumpHeight;
     }
 }
 
-export class Pipe extends Container {
+export class Pipe extends Container
+{
     private pipe1: Sprite;
     private pipe2: Sprite;
 
-    constructor() {
+    public ignoreCollision: boolean = false;
+
+    constructor()
+    {
         super();
         this.pipe1 = Sprite.from(pipeSprite);
         this.pipe2 = Sprite.from(pipeSprite);
@@ -53,31 +64,56 @@ export class Pipe extends Container {
         this.pipe2.anchor.set(0.5, 0);
 
         var scale = 0.4;
-        this.pipe1.scale.set(scale, -scale)
-        this.pipe2.scale.set(scale, scale)
+        this.pipe1.scale.set(scale * 0.9, -scale)
+        this.pipe2.scale.set(scale * 0.9, scale)
 
         var distanceOffset = 100.0;
         this.pipe1.position.y -= distanceOffset;
         this.pipe2.position.y += distanceOffset;
     }
 
-    public checkCollision(obj: Character): boolean {
+    public checkCollision(obj: Character): boolean
+    {
         const pipe1Bounds = this.pipe1.getBounds();
         const pipe2Bounds = this.pipe2.getBounds();
         const objBounds = obj.getBounds();
-
-        drawDebugRect(debug[0] as Graphics, pipe1Bounds);
-        drawDebugRect(debug[1] as Graphics, pipe2Bounds);
-        drawDebugRect(debug[2] as Graphics, objBounds);
-
+        shrinkRect(objBounds, 50, 50);
         return checkCollisionOneOnOne(objBounds, pipe1Bounds) || checkCollisionOneOnOne(objBounds, pipe2Bounds);
     }
 }
 
+export class Heart extends Container
+{
+    private heart: Sprite;
 
-export class TouchLayer extends Container {
+    public ignoreCollision: boolean = false;
+
+    constructor()
+    {
+        super();
+
+        this.heart = Sprite.from(heartSprite);
+        this.addChild(this.heart);
+        this.heart.anchor.set(0.5, 0.5);
+
+        var scale = 0.5;
+        this.heart.scale.set(scale, scale);
+
+        this.renderable = false;
+    }
+
+    public checkCollision(obj: Character): boolean
+    {
+        const r = checkCollisionOneOnOne(this.heart.getBounds(), obj.getBounds());
+        return r;
+    }
+}
+
+export class TouchLayer extends Container
+{
     private touchmask: Sprite;
-    constructor() {
+    constructor()
+    {
         super();
         this.touchmask = Sprite.from(pipeSprite); // doesn't matter which sprite
         this.touchmask.scale.set(99999, 99999);
@@ -86,34 +122,41 @@ export class TouchLayer extends Container {
         this.touchmask.interactive = true;
     }
 
-    public setCallBack(f: (...args: any[]) => void) {
+    public setCallBack(f: (...args: any[]) => void)
+    {
         this.touchmask.on("pointerdown", f, this);
     }
 }
 
-export class GameRule {
+export class GameRule
+{
     private _state: number;
     private readonly lives: number;
 
-    public get state(): number {
+    public get state(): number
+    {
         return this._state;
     }
 
 
-    constructor(lives: number) {
+    constructor(lives: number)
+    {
         this._state = -1;
         this.lives = lives;
     }
 
-    public startGame(): void {
+    public startGame(): void
+    {
         this._state = this.lives;
     }
 
-    public gainLive(): void {
+    public gainLive(): void
+    {
         this._state++;
     }
 
-    public gameOver(): boolean {
+    public gameOver(): boolean
+    {
         return this._state <= 0;
     }
 
@@ -128,47 +171,101 @@ const app = new Application({
     height: 480
 });
 
-const character = new Character(10, 8, 0.2);
+const character = new Character(10, 6.5, 0.2);
 app.stage.addChild(character);
 character.x = 310;
 character.y = 240;
 
-const pipe = new Pipe();
-app.stage.addChild(pipe);
-pipe.x = 500;
-pipe.y = 350;
+const pipes: Pipe[] = [];
+
+for (let index = 0; index < 2; index++)
+{
+    const pipe = new Pipe();
+    pipe.x = app.view.clientWidth + 300 * (index + 1);
+    pipe.y = app.view.clientHeight / 2 + generateRandomNumber(-app.view.clientHeight / 2 + 100, app.view.clientHeight / 2 - 100);
+    app.stage.addChild(pipe);
+    pipes.push(pipe)
+}
+
+const heart = new Heart();
+app.stage.addChild(heart);
+
 
 const touchLayer = new TouchLayer();
-touchLayer.setCallBack((e: InteractionEvent) => {
+touchLayer.setCallBack((_e: InteractionEvent) =>
+{
     character.jump();
-    console.log("e: ", e)
 });
 app.stage.addChild(touchLayer);
 
-Ticker.shared.add(() => {
-    var result = pipe.checkCollision(character);
-    console.log("Collision: " + result);
-    console.log("deltaTime: " + Ticker.shared.deltaTime);
-}), character);
+var shield: number = 2;
+var streak: number = 0;
+
+
+Ticker.shared.add(() =>
+{
+    if (heart.renderable)
+    {
+        heart.x -= 2 * Ticker.shared.speed;
+        
+    }
+
+    const heartCollisionResult = heart.checkCollision(character);
+    if (heartCollisionResult && heart.renderable)
+    {
+        shield++;
+        heart.renderable = false;
+    }
+
+
+    pipes.forEach(pipe =>
+    {
+        // move pipes
+        pipe.x -= 2 * Ticker.shared.speed;
+
+        // wrap around
+        if (pipe.x < -30)
+        {
+            pipe.x = app.view.clientWidth + 20;
+            pipe.ignoreCollision = false;
+            pipe.alpha = 1;
+
+            if (streak >= 2 && !heart.renderable)
+            {
+                heart.renderable = true;
+                heart.x = pipe.x;
+                heart.y = pipe.y;
+            }
+        }
+
+        const pipeCollisionResult = pipe.checkCollision(character);
+        if (pipeCollisionResult && !pipe.ignoreCollision)
+        {
+            streak = 0;
+            if (shield > 0)
+            {
+                shield--;
+                pipe.ignoreCollision = true;
+                pipe.alpha = 0.5;
+            }
+            else
+            {
+                Ticker.shared.speed = 0;
+                console.log("Game over!")
+            }
+        }
+        else if (pipe.x < app.view.width/2 - character.width/2 && !pipe.ignoreCollision)
+        {
+            pipe.ignoreCollision = true;
+            streak++;
+        }
+    });
+}, character);
 
 Ticker.shared.add(character.update, character);
 
-const debug: Graphics[] = [];
-
-for (let i = 0; i < 3; i++) {
-    const graphic = new Graphics();
-    debug.push(graphic);
-    app.stage.addChild(graphic);
-}
 
 
-// const checkCollision1 =  () => {
-//     var result = pipe.checkCollision(character);
-//     console.log("Collision: " + result);
-//     console.log("deltaTime: " + Ticker.shared.deltaTime);
-// };
-// TODO: Logic: tolerate collision, heart, counter, etc
+
+
 // TODO: UI: pause, point counter,
-
-// TODO: collision detection
-// TODO: physics

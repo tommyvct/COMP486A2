@@ -19,6 +19,7 @@ export const characterAnimationSprites: Array<string> =
 ]
 
 export const pipeSprite: string = "pipe.png";
+export const heartSprite: string = "heart_fill.png";
 
 export function clamp(toClamp: number, limit1: number, limit2: number) 
 {
@@ -35,7 +36,7 @@ export function clamp(toClamp: number, limit1: number, limit2: number)
 
 export function checkCollisionOneOnOne(a: Rectangle, b: Rectangle)
 {
-    const rightmostLeft = a.left < b.left ? b.left : a.top;
+    const rightmostLeft = a.left < b.left ? b.left : a.left;
     const leftmostRight = a.right > b.right ? b.right : a.right;
 
     if (leftmostRight <= rightmostLeft)
@@ -65,4 +66,25 @@ export function drawDebugRect(graphics: Graphics, rect: Rectangle)
     graphics.lineTo(rect.left, rect.bottom);
     graphics.closePath();
     graphics.endFill();
+}
+
+export function shrinkRect(rect: Rectangle, shrinkX: number, shrinkY: number)
+{
+    rect.x += shrinkX/2;
+    rect.y += shrinkY/2;
+    rect.width -= shrinkX;
+    rect.height -= shrinkY;
+}
+
+/**
+* Genrate random int
+* @param min 
+* @param max 
+* @returns random int - min & max inclusive
+*/
+export const generateRandomNumber = (min: number, max: number) => {
+    // credit: https://infinitbility.com/how-to-get-random-number-in-typescript/
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min; 
 }
