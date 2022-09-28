@@ -1,4 +1,4 @@
-import { Graphics, Rectangle } from "pixi.js";
+import { Graphics, Rectangle, TextStyle } from "pixi.js";
 
 export const characterAnimationSprites: Array<string> = 
 [
@@ -20,6 +20,8 @@ export const characterAnimationSprites: Array<string> =
 
 export const pipeSprite: string = "pipe.png";
 export const heartSprite: string = "heart_fill.png";
+export const pauseSprite: string = "pause.png"
+export const blackSprite: string = "black.png"
 
 export function clamp(toClamp: number, limit1: number, limit2: number) 
 {
@@ -88,3 +90,11 @@ export const generateRandomNumber = (min: number, max: number) => {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min; 
 }
+
+export const ts = new TextStyle(
+    {
+        align: "center",
+        fontSize: 42,
+        fill: "#FFFFFF"
+    }
+);
