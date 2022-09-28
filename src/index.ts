@@ -201,7 +201,7 @@ export class HUD extends Container
             });
         this.currentPoints.anchor.set(0.5, 0);
         this.addChild(this.currentPoints);
-        this.currentPoints.x = app.view.width / 2;
+        this.currentPoints.x = app.view.clientWidth / 2;
         this.currentPoints.y = 0;
 
         this.currentShields = new BitmapText("",
@@ -212,7 +212,7 @@ export class HUD extends Container
             });
         this.currentShields.anchor.set(1, 0)
         this.addChild(this.currentShields);
-        this.currentShields.x = app.view.width;
+        this.currentShields.x = app.view.clientWidth;
         this.currentShields.y = 0;
 
         this.blackBackground = Sprite.from(blackSprite);
@@ -225,8 +225,8 @@ export class HUD extends Container
         this.resume = new Text('resume', ts);
         this.resume.anchor.set(0.5, 0.5);
         this.addChild(this.resume);
-        this.resume.x = app.view.width / 2;
-        this.resume.y = app.view.height / 2;
+        this.resume.x = app.view.clientWidth / 2;
+        this.resume.y = app.view.clientHeight / 2;
         this.resume.renderable = false;
         this.resume.interactive = false;
     }
@@ -320,16 +320,16 @@ export class GameCover extends Container
         this.startButton = new Text("start", ts);
         this.startButton.anchor.set(0.5, 0.5);
         this.addChild(this.startButton);
-        this.startButton.x = app.view.width / 2;
-        this.startButton.y = app.view.height / 2;
+        this.startButton.x = app.view.clientWidth / 2;
+        this.startButton.y = app.view.clientHeight / 2;
         this.startButton.interactive = true;
         this.startButton.renderable = true;
 
         this.retryButton = new Text("start", ts);
         this.retryButton.anchor.set(0.5, 0.5);
         this.addChild(this.retryButton);
-        this.retryButton.x = app.view.width / 2;
-        this.retryButton.y = app.view.height / 2;
+        this.retryButton.x = app.view.clientWidth / 2;
+        this.retryButton.y = app.view.clientHeight / 2;
         this.retryButton.interactive = false;
         this.retryButton.renderable = false;
 
@@ -337,8 +337,8 @@ export class GameCover extends Container
         this.score.anchor.set(0.5, 0.5);
         this.addChild(this.score);
         this.score.renderable = false;
-        this.score.x = app.view.width / 2;
-        this.score.y = app.view.height * 0.35
+        this.score.x = app.view.clientWidth / 2;
+        this.score.y = app.view.clientHeight * 0.35
     }
 
     /**
@@ -517,7 +517,7 @@ Ticker.shared.add(() =>
             }
         }
         // no collision, increase counter
-        else if (pipe.x < app.view.width / 2 - character.width / 2 && !pipe.ignoreCollision)
+        else if (pipe.x < app.view.clientWidth / 2 - character.width / 2 && !pipe.ignoreCollision)
         {
             pipe.ignoreCollision = true;
             streak++;
