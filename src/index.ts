@@ -565,6 +565,7 @@ gameCover.setRestartCallback(() =>
         pipes[index].x = app.view.clientWidth + 300 * (index + 1);
         pipes[index].y = app.view.clientHeight / 2 + generateRandomNumber(-app.view.clientHeight / 2 + 100, app.view.clientHeight / 2 - 100);
         pipes[index].alpha = 1;
+        pipes[index].ignoreCollision = false;
     }
 
     character.y = app.view.clientHeight / 2;
